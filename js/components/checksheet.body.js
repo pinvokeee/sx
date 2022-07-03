@@ -1,5 +1,13 @@
 const checkSheet =
 {
+    props:
+    {
+        onSelectedComponent:
+        {
+            type: Function
+        }
+    },
+
     components:
     {
         "checksheetblock": checkSheetBlock
@@ -10,136 +18,59 @@ const checkSheet =
         return {
             button_enabled: false,
             _output: [],
-
-            items:
-            [
-                {
-                    title: "番号",
-                    type: "text",
-                    isRequired: true,
-                    validateRegExp: "^\\d{6}[-]\\d+$",
-                    validateErrorMessage: "正しい形式で入力してください"
-                },
-
-                {
-                    id: 0,
-                    title: "チェックボックステスト",
-                    type: "radio",
-                    isRequired: true,
-                    items:
-                    [
-                        { title: "あいうえお" },
-                        { 
-                            title: "かきくけこ",                            
-                            child:
-                            [
-                                {
-                                    title: "AAAABBB",
-                                    type: "check",
-                                    items:
-                                    [
-                                        {
-                                            title: "TEST",
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        { title: "さしすせそ" },
-                    ],
-                },
-            ],
             
-            valueSet:
-            [
-
-            ]
+            sheet: new sheetManager(sheetData),
+            canOutput: false,
         }
     },
 
     mounted()
     {
-        this.id_auto_mapping(this.items, 0);
-        this.create_valueSet(this.items, this.valueSet);
-
-        console.log(this.items, this.valueSet);
     },
 
     methods:
     {
-        id_auto_mapping(arr, current_id)
+        onStateChange(target, newState)
         {
-            if (arr == null) return current_id;
-
-            for (obj of arr)
-            {
-                obj.id = current_id++;
-                current_id = this.id_auto_mapping(obj.child, current_id);
-
-                if (obj.items != null) 
-                {
-                    for (item of obj.items)
-                    {
-                        current_id = this.id_auto_mapping(item.child, current_id);
-                    }
-                }
-            }
-
-            return current_id;
-        },
-
-        create_valueSet(arr, currentChild)
-        {
-            if (arr == null) return;
-
-            for (obj of arr)
-            {
-                console.log(obj, currentChild);
-
-                currentChild["X" + obj.id] = 
-                {
-                    title: obj.title,
-                    value: "",               
-                    children: [],     
-                }
-
-                this.create_valueSet(obj.child, currentChild.children);
-
-                if (obj.items != null) 
-                {
-                    for (item of obj.items)
-                    {
-                        this.create_valueSet(item.child, currentChild.children);
-                    }
-                }
-            }
-        },
-
-        onStateChange(obj)
-        {
-            const out_value = obj.target.type == "check" ? obj.value.join(",") : obj.value;
-            this._output[obj.target.id] = `${obj.target.title}:${out_value}`
-
-            console.log(this._output);
+            this.sheet.setState(target, newState);  
+            this.canOutput = this.sheet.getCanOutputLog();
         },
 
         onCompleted(target, value)
         {
-            console.log(target, value);
-            this.button_enabled = value;
+
         },
 
-        output()
+        click()
         {
-            console.log(this.items);
+            console.log(this.sheet.generateCheckLog());
         }
     },
-
+    
     template:`
-        <div v-for="item in items" :key="item.id">
-            <checksheetblock :target="item" :enabled="true" v-bind="{onStateChange, onCompleted}"></checksheetblock>
+
+        <div v-for="item in sheet.getItems()" :key="item.id">
+            <checksheetblock :target="item" :enabled="true" v-bind="{onStateChange, onCompleted, onSelectedComponent}"></checksheetblock>
         </div>
 
-        <input type="button" v-bind:disabled="!button_enabled" class="" @click="output">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" v-bind:disabled="!canOutput" @click="click">{{canOutput ? "出力" : "未入力・未選択の項目があります"}}</button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" data-bs-backdrop="static"  aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">貼り付け用</h5>
+            </div>
+            <div class="modal-body">
+                <textarea style="width:100%;height:300px;">{{this.sheet.generateCheckLog()}}</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+            </div>
+            </div>
+        </div>
+        </div>
+
     `
 }

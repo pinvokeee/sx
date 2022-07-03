@@ -6,7 +6,7 @@ const checkSheetBlock =
     {
         target:
         {
-            type: Object
+            type: checkItem
         },
 
         enabled:
@@ -22,6 +22,11 @@ const checkSheetBlock =
         onCompleted:
         {
             type: Function
+        },
+
+        onSelectedComponent:
+        {
+            type: Function
         }
     },
 
@@ -31,12 +36,56 @@ const checkSheetBlock =
             _text: "",
             _selectedItems: [],
             _checked: false,
-            _change: false,
+            _changed: false,
         }
     },
 
     computed:
     {
+        value:
+        {
+            get()
+            {
+                if (this.target.type == "check") return this.selectedItems;
+                if (this.target.type == "radio") return this.selectedItems;
+                if (this.target.type == "text") return this.text;
+
+                return this.target.label;
+            }
+        },
+
+        isEnabled:
+        {
+            get()
+            {
+                //状態に変更があった場合は通知する
+                if (this.enabled != this.target.state.isEnabled)
+                {
+                    this.onStateChange(this.target, 
+                    {
+                        isEnabled: this.enabled,
+                        isChanged: this.isChanged,
+                        value: this.value,
+                    });
+                }
+
+                return this.enabled;
+            }
+        },
+
+        isChanged:
+        {
+            get()
+            {
+                return this._changed;
+            },
+
+            set(value)
+            {
+                this._changed = value;
+            }
+        },
+
         selectedItems:
         {
             get()
@@ -46,19 +95,15 @@ const checkSheetBlock =
 
             set(value)
             {
-                this.changed = true;
+                this.isChanged = true;
                 this._selectedItems = value;
 
-                if (this.onStateChange != null) this.onStateChange(
-                    {
-                        target: this.target,
-                        value: value,
-                        isErrorValidate: this.isRequiredError(),
-                        isErrorRequired: this.isValidateError(),
-                    }
-                );
-
-                if (this.onCompleted != null) this.onCompleted(this.target, this.isRequiredError() && this.isValidateError());
+                this.onStateChange(this.target, 
+                {
+                    isEnabled: this.enabled,
+                    isChanged: this.isChanged,
+                    value: this.value,
+                });
             }
         },
 
@@ -71,34 +116,17 @@ const checkSheetBlock =
 
             set(value)
             {
-                this.changed = true;
+                this.isChanged = true;
                 this._text = value;
 
-                if (this.onStateChange != null) this.onStateChange(
-                    {
-                        target: this.target,
-                        value: value,
-                        isErrorValidate: this.isRequiredError(),
-                        isErrorRequired: this.isValidateError(),
-                    }
-                );
-
-                if (this.onCompleted != null) this.onCompleted(this.target, this.isRequiredError() && this.isValidateError());
+                this.onStateChange(this.target, 
+                {
+                    isEnabled: this.enabled,
+                    isChanged: this.isChanged,
+                    value: this.value,
+                });
             }
         },
-
-        changed:
-        {
-            get()
-            {
-                return this._change;
-            },
-
-            set(value)
-            {
-                this._change = value;
-            }
-        }
     },
 
     methods:
@@ -112,50 +140,11 @@ const checkSheetBlock =
         {
             return this.selectedItems == title;
         },
-
-        isError()
+        
+        getInnerBlocksClass(enabled)
         {
-            return !this.isRequiredError() || !this.isValidateError();
+            return enabled ? ["block"] : ["block", "disabled"];
         },
-
-        getErrorMessage()
-        {
-            if (this.isRequiredError())
-            {
-                if (this.target.type == "text") return "入力は必須です";
-                if (this.target.type == "check" || this.target.type == "radio") return "選択は必須です";
-            }
-
-            if (this.isValidateError())
-            {
-                return this.target.validateErrorMessage;
-            }
-        },
-
-        isRequiredError()
-        {
-            if (!this.enabled) return false;
-            
-            if (this.target.isRequired == null || !this.target.isRequired) return false;
-
-            if (this.target.type == "text") return this.text.length == 0;
-            if (this.target.type == "check") return this.selectedItems.length == 0;
-            if (this.target.type == "radio") return this.selectedItems == "";
-
-            return false;
-        },
-
-        isValidateError()
-        {
-            if (!this.enabled) return false;
-
-            if (this.text.length == 0) return false;
-
-            if (this.target.validateRegExp != null && this.target.validateRegExp.length > 0)
-            {
-                return !(new RegExp(this.target.validateRegExp, "g").test(this.text));
-            }
-        }
     },
 
     mounted()
@@ -164,55 +153,56 @@ const checkSheetBlock =
     },
 
     template: `
-        <div class="block">
+        <div :class="getInnerBlocksClass(enabled)" @click="onSelectedComponent($event, target)">
             <div class="" v-if="target.hiddenTitle==null || !target.hiddenTitle">
-                <span>{{target.title}}</span>
-                <span v-if="target.isRequired" class="requiredBadge">必須</span>
-                <div class="validate_error" v-show="changed && isError()">{{getErrorMessage()}}</div>
+                <h6>{{target.label}}<span v-if="target.isRequired && isEnabled" class="badge text-bg-danger">必須</span></h6>
+                <div class="validate_error" v-show="isChanged && target.getErrorMessage() != null">{{target.getErrorMessage()}}</div>
             </div>
+<!-- 
+            <button class="btn btn-primary">
+                <div class="bi bi-plus-circle"><span>追加</span></div>                
+            </button> -->
 
             <div class="">
                 <template v-if="target.type=='text'">
                     <!-- テキスト入力欄 -->
-                    <input class="inline-item" type="text" v-model="text" v-bind:disabled="!enabled">
-
+                    <div class="">
+                        <input class="inline-item" type="text" v-model="text" v-bind:disabled="!isEnabled">
+                    </div>
                 </template>
 
                 <template v-if="target.type=='check'">
                     <!-- チェックボックス -->
-                    <div class="inline-item" v-for="item in target.items" :key="item.title">
-                        <label class="">
-                            <input class="" type="checkbox" :value="item.title" v-model="selectedItems" v-bind:disabled="!enabled">
-                            {{item.title}}
-                        </label>
-
-                        <div class="child" v-for="ch in item.child" :key="ch.id" style="margin-left: 30px">
-                            <checkSheetBlock v-bind:target="ch" :enabled="isEnabledForCheckBox(item.title)" v-bind="{onStateChange,onCompleted}">
-                            </checkSheetBlock>
+                    <div class="">
+                        <div class="inline-item" v-for="item in target.items" :key="item.label">
+                            <label class="">
+                                <input class="form-check-input" type="checkbox" :value="item.label" v-model="selectedItems" v-bind:disabled="!isEnabled">
+                                {{item.label}}
+                            </label>
+                    
+                            <div class="child" v-for="ch in item.items" :key="ch.id" style="margin-left: 30px">
+                                <checkSheetBlock v-bind:target="ch" :enabled="isEnabledForCheckBox(item.label)" v-bind="{onStateChange,onCompleted,onSelectedComponent}">
+                                </checkSheetBlock>
+                            </div>
                         </div>
                     </div>
                 </template>
 
                 <template v-if="target.type=='radio'">
                     <!-- ラジオボタン -->
-                    <div class="inline-item" v-for="item in target.items" :key="item.title">                          
+                    <div class="inline-item" v-for="item in target.items" :key="item.label">                          
                         <label class="">
-                            <input class="" type="radio" :value="item.title" v-model="selectedItems" v-bind:disabled="!enabled">
-                            {{item.title}}
+                            <input class="form-check-input" type="radio" :value="item.label" v-model="selectedItems" v-bind:disabled="!isEnabled">
+                            {{item.label}}
                         </label>
 
-                        <div class="child" v-for="ch in item.child" :key="ch.id">                    
-                            <checkSheetBlock v-bind:target="ch" :enabled="isEnabledForRadioButton(item.title)" v-bind="{onStateChange,onCompleted}">
+                        <div class="child" v-for="ch in item.items" :key="ch.id">                    
+                            <checkSheetBlock v-bind:target="ch" :enabled="isEnabledForRadioButton(item.label)" v-bind="{onStateChange,onCompleted,onSelectedComponent}">
                             </checkSheetBlock>
                         </div>
                     </div>
                 </template>
 
-                <!-- 入れ子要素 -->
-                <div class="child" v-if="target.child != null" v-for="item in target.child" :key="item.id" v-bind="{onStateChange,onCompleted}">
-                    <checkSheetBlock v-bind:target="item" :enabled="true">                
-                    </checkSheetBlock>
-                </div>
             </div>
         </div>
     `
