@@ -156,7 +156,7 @@ const checkSheetBlock =
         <div :class="getInnerBlocksClass(enabled)" @click="onSelectedComponent($event, target)">
             <div class="" v-if="target.hiddenTitle==null || !target.hiddenTitle">
                 <h6>{{target.label}}<span v-if="target.isRequired && isEnabled" class="badge text-bg-danger">必須</span></h6>
-                <div class="validate_error" v-show="isChanged && target.getErrorMessage() != null">{{target.getErrorMessage()}}</div>
+                <div class="validate_error" v-show="isEnabled && isChanged && target.getErrorMessage() != null">{{target.getErrorMessage()}}</div>
             </div>
 <!-- 
             <button class="btn btn-primary">

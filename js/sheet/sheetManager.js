@@ -98,7 +98,7 @@ class sheetManager
                 }
             }
 
-            this._generateCheckLog(item.items, log, nest+1);
+            if (item.type != "check") this._generateCheckLog(item.items, log, nest+1);
         }
     }
 
