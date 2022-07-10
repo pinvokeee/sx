@@ -20,7 +20,6 @@ class sheetManager
 
     loadItems(sourceItems, destItems, id)
     {
-        console.log(sourceItems);
         for (const item of sourceItems)
         {
             const new_item = new checkItem();
@@ -80,19 +79,19 @@ class sheetManager
             {
                 if (item.type == "text")
                 {
-                    log.push(`${"\t".repeat(nest)}${item.label}:${item.state.value}`);
+                    log.push(`${" 　 　".repeat(nest)}${item.label}:${item.state.value}`);
                 }
                 else if (item.type == "radio")
                 {
-                    log.push(`${"\t".repeat(nest)}${item.label}:${item.state.value}`);                    
+                    log.push(`${" 　 　".repeat(nest)}${item.label}:${item.state.value}`);                    
                 }
                 else if (item.type == "check")
                 {
-                    log.push(`${"\t".repeat(nest)}${item.label}:`);
+                    log.push(`${" 　 　".repeat(nest)}${item.label}:`);
                     
                     for (const sel of this.sortFromId(item.state.value, item.items))
                     {
-                        log.push(`${"\t".repeat(nest)}☑${sel.label}`);
+                        log.push(`${" 　 　".repeat(nest)}☑${sel.label}`);
                         this._generateCheckLog(sel.items, log, nest+1);
                     }
                 }

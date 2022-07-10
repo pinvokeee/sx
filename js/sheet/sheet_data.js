@@ -36,6 +36,23 @@ const sheetData =
                             [
                                 {
                                     label: "TEST",
+                                    items:
+                                    [
+                                        {
+                                            label: "TEST2",
+                                            type: "radio",
+                                            items:
+                                            [
+                                                {
+                                                    label: "子要素1",
+                                                },
+
+                                                {
+                                                    label: "子要素2",
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
                             ]
                         }

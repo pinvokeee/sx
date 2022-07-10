@@ -93,4 +93,39 @@ class checkItem
 
         return null;
     }
+
+    clone()
+    {
+        return this.cloneItem();
+    }
+
+    cloneItem()
+    {
+        const newItem = Object.assign(new checkItem(), this);
+
+        newItem.items = [];
+        newItem.validation = Object.assign({}, this.validation);
+
+        for (const item of this.items)
+        {
+            newItem.items.push(item.cloneItem());
+        }
+
+        return newItem;
+    }
+
+    // cloneItem(item)
+    // {
+    //     const newItem = Object.assign(new checkItem(), item);
+
+    //     newItem.items = [];
+    //     newItem.validation = Object.assign({}, item.validation);
+
+    //     for (const itm of this.items)
+    //     {
+    //         newItem.items.push(this.cloneItem(itm));
+    //     }
+
+    //     return newItem;
+    // }
 }
