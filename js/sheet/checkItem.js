@@ -8,6 +8,8 @@ class checkItem
         this.type = "label";
         this.items = [];
         this.isRequired = false;
+
+        this.parent = null;
         
         this.validation = 
         {
@@ -57,6 +59,8 @@ class checkItem
 
     isMatchedPattern()
     {
+        console.log(this.label);
+
         //そもそもパターンが設定されていなければOK
         if (this.validation.pattern == "") return true;
 
@@ -76,19 +80,22 @@ class checkItem
     hasPatternError()
     {
         if (this.validation.pattern == "") return false;
+
         return !this.Reg.test(this.state.value);
     }
     
     getErrorMessage()
     {
         const error_req = this.hasRequiredError();
+
         if (error_req)
         {
             if (this.type == "text") return `入力は必須です`;
             if (this.type == "radio" || this.type == "check") return `選択は必須です`;
         }
-
+        
         const error_val = this.hasPatternError();
+        
         if (error_val) return this.validation.errorMessage;
 
         return null;

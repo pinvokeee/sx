@@ -2,6 +2,11 @@ const checkSheet =
 {
     props:
     {
+        sheet:
+        {
+            type: sheetManager
+        },
+
         onSelectedComponent:
         {
             type: Function
@@ -29,7 +34,6 @@ const checkSheet =
             button_enabled: false,
             _output: [],
             
-            sheet: new sheetManager(sheetData),
             _canOutput: false,
 
             resultModal: null,
@@ -79,13 +83,12 @@ const checkSheet =
         }
     },
     
-    template:`
-
-        <div v-for="item in sheet.getItems()" :key="item.id">
-            <checksheetblock :isEditable="isEditable" :target="item" :enabled="true" v-bind="{onStateChange, onSelectedComponent}"></checksheetblock>
-        </div>
-
-        <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" v-bind:disabled="!canOutput" @click="click">{{canOutput ? "出力" : "未入力・未選択の項目があります"}}</button> -->
+    template: `
+        <template v-if="sheet != null">
+            <div v-for="item in sheet.getItems()" :key="item.id">
+                <checksheetblock :isEditable="isEditable" :target="item" :enabled="true" v-bind="{onStateChange, onSelectedComponent}"></checksheetblock>
+            </div>
+        </template>
 
         <!-- Modal -->
         <div class="modal fade" ref="modal" id="exampleModal" tabindex="-1" data-bs-backdrop="static"  aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -95,7 +98,7 @@ const checkSheet =
                 <h5 class="modal-title" id="exampleModalLabel">貼り付け用</h5>
             </div>
             <div class="modal-body">
-                <textarea style="width:100%;height:300px;">{{this.sheet.generateCheckLog()}}</textarea>
+                <textarea style="width:100%;height:300px;">{{sheet?.generateCheckLog()}}</textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
@@ -103,6 +106,5 @@ const checkSheet =
             </div>
         </div>
         </div>
-
     `
 }

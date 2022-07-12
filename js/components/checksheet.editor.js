@@ -2,6 +2,11 @@ const checkSheetEditor =
 {
     props:
     {
+        sheet:
+        {
+            type: sheetManager
+        },
+
         selectedCheckItem:
         {
             type: Object
@@ -10,11 +15,17 @@ const checkSheetEditor =
         onApplyItemProperty:
         {
             type: Function
+        },
+
+        onRemoveItem:
+        {
+            type: Function
         }
     },
 
     watch:
     {
+        //選択したアイテムが変わったら編集用アイテムにコピーする
         selectedCheckItem: function(newValue, oldValue)
         {
             this.editableItem = newValue.clone();
@@ -33,7 +44,33 @@ const checkSheetEditor =
     {
         onApply(event)
         {
-            this.onApplyItemProperty(event, this.editableItem);
+            for (const key of Object.keys(this.editableItem))
+            {
+                if (!(this.selectedCheckItem[key] instanceof Object))
+                {
+                    this.selectedCheckItem[key] = this.editableItem[key];
+                }
+            }
+
+            this.selectedCheckItem.setValidation(
+                {
+                    pattern: item.validation.pattern,
+                    errorMessage: item.validation.errorMessage
+                }
+            );
+
+            this.editableItem.items.length = 0;
+            item.items.forEach(a => this.editableItem.items.push(a.clone()));
+            
+            delete this.editableItem;
+
+            // this.onApplyItemProperty(event, this.editableItem);
+            // delete this.editableItem;
+        },
+
+        onRemove(event)
+        {
+            this.onRemoveItem(event, this.editableItem);
             delete this.editableItem;
         }
     },
@@ -93,7 +130,7 @@ const checkSheetEditor =
             </template>
 
             <button class="btn btn-primary" @click="onApply">適用</button>
-            <button class="btn btn-danger" @click="onApply">削除</button>
+            <button class="btn btn-danger" @click="onRemove">削除</button>
 
         </div>
 

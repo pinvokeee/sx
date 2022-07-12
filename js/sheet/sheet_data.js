@@ -22,7 +22,15 @@ const sheetData =
             items:
             [
                 { 
-                    label: "あいうえお" 
+                    label: "あいうえお",
+                    items:
+                    [
+                        {
+                            label: "TEST",
+                            type: "text",
+                            isRequired: true,
+                        }
+                    ]
                 },
                 { 
                     label: "かきくけこ",                            

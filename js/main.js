@@ -9,6 +9,8 @@ const App =
     data()
     {
         return {
+            sheet: new sheetManager(sheetData),
+
             selectedCheckItem: null,
             isEnabledOutputButton: false,
         }
@@ -23,25 +25,17 @@ const App =
         },
 
         onApplyItemProperty(event, item)
+        {    
+        
+   
+        },
+
+        onRemoveItem(event, item)
         {
-    
-            for (const key of Object.keys(item))
+            if (item.parent != null)
             {
-                if (!(this.selectedCheckItem[key] instanceof Object))
-                {
-                    this.selectedCheckItem[key] = item[key];
-                }
+                item.parent.items = item.parent.items.filter(e => e.ID != item.ID);
             }
-
-            console.log(this.selectedCheckItem.items);
-
-            // this.selectedCheckItem.items.forEach(a => delete a);
-
-            this.selectedCheckItem.items.length = 0;
-            item.items.forEach(a => this.selectedCheckItem.items.push(a.clone()));
-            
-            delete item;
- 
         },
 
         onChangeCompleted(value)
@@ -58,21 +52,21 @@ const App =
     template: `
         <!-- <div class="container"> -->
             <nav class="navbar navbar-dark bg-dark sticky-top">
-            <div class="container-fluid">
-                    <span class="navbar-brand" href="#">チェックシート</span>
-                    <button @click="attack" class="btn btn-success" v-bind:disabled="!isEnabledOutputButton">{{isEnabledOutputButton ? "チェック結果を出力" : "未入力・未選択の項目があります"}}</button>
-            </div>
+                <div class="container-fluid">
+                        <span class="navbar-brand" href="#">チェックシート</span>
+                        <button @click="attack" class="btn btn-success" v-bind:disabled="!isEnabledOutputButton">{{isEnabledOutputButton ? "チェック結果を出力" : "未入力・未選択の項目があります"}}</button>
+                </div>
             </nav>
 
             <div class="container-fluid">
                 <div class="row">
                 <div class="col-sm-5 sheet-body">
                     <aside  class="bd-sidebar">
-                    <settingEditor :selectedCheckItem="selectedCheckItem" v-bind="{ onApplyItemProperty }"></settingEditor>
+                    <settingEditor :selectedCheckItem="selectedCheckItem" v-bind="{ sheet, onApplyItemProperty, onRemoveItem }"></settingEditor>
                     </aside>
                 </div>                    
                     <div class="col-sm sheet-body">                            
-                        <checksheet ref="sheetBody" v-bind="{ onSelectedComponent, onChangeCompleted }" :isEditable='true'>
+                        <checksheet ref="sheetBody" v-bind="{ sheet, onSelectedComponent, onChangeCompleted }" :isEditable='true'>
                         </checksheet>
                     </div>
                 </div>

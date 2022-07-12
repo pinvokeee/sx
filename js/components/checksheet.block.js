@@ -218,6 +218,10 @@ const checkSheetBlock =
                     </div>
                 </template>
 
+                <template v-if="target.type=='table'">
+                    
+                </template>
+
             </div>
         </div>
     `

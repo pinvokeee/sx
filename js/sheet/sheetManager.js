@@ -13,12 +13,12 @@ class sheetManager
         const id = 0;
         const sheet_obj = new sheetObject();
         
-        this.loadItems(this.source.items, sheet_obj.checkItems, id);
+        this.loadItems(this.source.items, sheet_obj.checkItems, id, null);
 
         this.targetSheet = sheet_obj;
     }
 
-    loadItems(sourceItems, destItems, id)
+    loadItems(sourceItems, destItems, id, parentItem)
     {
         for (const item of sourceItems)
         {
@@ -28,12 +28,13 @@ class sheetManager
             new_item.isRequired = item.isRequired != null ? item.isRequired : false;
             new_item.type = item.type != null ? item.type : "label";
             new_item.label = item.label != null ? item.label : "";
+            new_item.parent = parentItem;
 
             if (item.validation != null) new_item.setValidation(item.validation);
 
             destItems.push(new_item);
 
-            if (item.items != null) id = this.loadItems(item.items, new_item.items, id);
+            if (item.items != null) id = this.loadItems(item.items, new_item.items, id, new_item);
         }
 
         return id;
